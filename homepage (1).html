@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="CommuteStay — Find boarding houses and guesthouses in Lusaka and understand your commute to Evelyn Hone, NIPA, and ZCAS."
+    />
+    <title>CommuteStay — Find your stay. Know your journey.</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="../assets/css/main.css" />
+    <style>
+      /* Large, full-width homepage map (~16:9). Scoped to this page only. */
+      .commute-layout-wide {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+      .commute-layout-wide > div:first-child {
+        max-width: 40rem;
+      }
+      .commute-layout-wide .map-container {
+        height: auto;
+        aspect-ratio: 16 / 9;
+        min-height: 22rem;
+        max-height: 44rem;
+      }
+      @media (max-width: 720px) {
+        .commute-layout-wide .map-container {
+          aspect-ratio: 4 / 3;
+          min-height: 20rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <div class="demo-banner" role="status">
+      <strong>Milestone 1 — front-end demo.</strong>
+      All listings, prices, and photos are sample data only. No database or
+      bookings are connected yet.
+    </div>
+
+    <header class="site-header">
+      <div class="container navbar">
+        <a class="brand" href="../index.html">
+          <span class="brand-mark" aria-hidden="true">CS</span>
+          CommuteStay
+        </a>
+
+        <button
+          type="button"
+          class="nav-toggle"
+          data-nav-toggle
+          aria-expanded="false"
+          aria-controls="main-nav"
+        >
+          <span class="nav-toggle-label">Menu</span>
+        </button>
+
+        <div class="nav-panel" id="main-nav" data-nav-panel>
+          <ul class="nav-links">
+            <li><a href="../index.html" aria-current="page">Home</a></li>
+            <li><a href="../pages/explore.html">Explore Stays</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+          </ul>
+          <div class="nav-actions">
+            <a class="btn btn-ghost" href="../pages/login.html">Login</a>
+            <a class="btn btn-primary" href="../pages/register.html">Register</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="top" aria-label="Welcome — Lusaka city skyline">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="slogan">
+              CommuteStay — Find your stay. Know your journey.
+            </p>
+            <h1>
+              Boarding houses &amp; guesthouses near your destination in Lusaka
+            </h1>
+            <p class="lead">
+              Search accommodation by institution or area, then see how far it
+              is from Evelyn Hone College, NIPA, or ZCAS before you book. We
+              focus on boarding houses and guesthouses — not hotels or general
+              apartment listings.
+            </p>
+
+            <div class="search-panel">
+              <p class="search-panel-note text-small text-muted">
+                Search sends you to the Explore page with your choices in the
+                URL. Results are not loaded from a database yet.
+              </p>
+              <form
+                id="home-search-form"
+                action="../pages/explore.html"
+                method="get"
+              >
+                <div class="form-field">
+                  <label for="destination">Destination or institution</label>
+                  <select id="destination" name="destination" required>
+                    <option value="">Select a destination</option>
+                    <option value="evelyn-hone">Evelyn Hone College</option>
+                    <option value="nipa">NIPA Main Campus</option>
+                    <option value="zcas">ZCAS University</option>
+                    <option value="lusaka-cbd">
+                      Lusaka CBD (custom point)
+                    </option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="check_in">Check-in</label>
+                  <input type="date" id="check_in" name="check_in" required />
+                </div>
+                <div class="form-field">
+                  <label for="check_out">Check-out</label>
+                  <input type="date" id="check_out" name="check_out" required />
+                </div>
+                <div class="form-field">
+                  <label for="guests">Guests</label>
+                  <select id="guests" name="guests" required>
+                    <option value="1">1 guest</option>
+                    <option value="2" selected>2 guests</option>
+                    <option value="3">3 guests</option>
+                    <option value="4">4 guests</option>
+                    <option value="5+">5+ guests</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label for="type">Stay type</label>
+                  <select id="type" name="type">
+                    <option value="all">Boarding or guesthouse</option>
+                    <option value="boarding">Boarding house</option>
+                    <option value="guesthouse">Guesthouse</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  Search stays
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="featured" aria-labelledby="featured-heading">
+        <div class="container">
+          <div class="section-heading">
+            <span class="eyebrow">Sample listings</span>
+            <h2 id="featured-heading">Featured demo accommodation</h2>
+            <p class="text-muted">
+              Fictional names and sample prices in Zambian kwacha (K) for layout
+              only. Every card is labelled as demo data and not verified.
+            </p>
+          </div>
+
+          <div class="demo-callout" role="note">
+            <strong>Demo data only.</strong> These properties do not exist in
+            our system. Verified badges and real reviews will appear only after
+            Milestone 4 (admin approval) and later backend work.
+          </div>
+
+          <div class="grid grid-3">
+            <article class="listing-card" aria-labelledby="listing-a-title">
+              <div class="listing-image-wrap">
+                <img
+                  class="listing-image"
+                  src="../assets/images/listing-1.jpg"
+                  alt="Grey single-storey boarding house with orange window frames and a covered entrance"
+                  loading="lazy"
+                />
+              </div>
+              <div class="listing-body">
+                <div class="listing-badges">
+                  <span class="badge badge-demo">Demo data</span>
+                  <span class="badge badge-type">Boarding house</span>
+                  <span class="badge badge-unverified">Not verified</span>
+                </div>
+                <h3 id="listing-a-title">[Demo] Fairview Student Lodge</h3>
+                <p class="text-small text-muted">
+                  Shared rooms · Wi‑Fi · Borehole water (sample text)
+                </p>
+                <p class="text-small text-muted commute-note">
+                  Sample distance to Evelyn Hone: not measured yet
+                </p>
+                <div class="listing-price">
+                  <span class="price"
+                    >K1,800 <small>/ bed / month (sample)</small></span
+                  >
+                  <span
+                    class="btn btn-secondary btn-disabled"
+                    aria-disabled="true"
+                    >Detail page — Milestone 2</span
+                  >
+                </div>
+              </div>
+            </article>
+
+            <article class="listing-card" aria-labelledby="listing-b-title">
+              <div class="listing-image-wrap">
+                <img
+                  class="listing-image"
+                  src="../assets/images/listing-2.jpg"
+                  alt="Single-storey guesthouse with a paved courtyard, trimmed hedges and a water tank"
+                  loading="lazy"
+                />
+              </div>
+              <div class="listing-body">
+                <div class="listing-badges">
+                  <span class="badge badge-demo">Demo data</span>
+                  <span class="badge badge-type">Guesthouse</span>
+                  <span class="badge badge-unverified">Not verified</span>
+                </div>
+                <h3 id="listing-b-title">[Demo] Rhodes Park Guest Annex</h3>
+                <p class="text-small text-muted">
+                  Private en-suite · Parking · Solar backup (sample text)
+                </p>
+                <p class="text-small text-muted commute-note">
+                  Sample distance to ZCAS: not measured yet
+                </p>
+                <div class="listing-price">
+                  <span class="price"
+                    >K550 <small>/ night (sample)</small></span
+                  >
+                  <span
+                    class="btn btn-secondary btn-disabled"
+                    aria-disabled="true"
+                    >Detail page — Milestone 2</span
+                  >
+                </div>
+              </div>
+            </article>
+
+            <article class="listing-card" aria-labelledby="listing-c-title">
+              <div class="listing-image-wrap">
+                <img
+                  class="listing-image"
+                  src="../assets/images/listing-3.jpg"
+                  alt="Shared student room with bunk beds, wooden wardrobes and a study desk by the window"
+                  loading="lazy"
+                />
+              </div>
+              <div class="listing-body">
+                <div class="listing-badges">
+                  <span class="badge badge-demo">Demo data</span>
+                  <span class="badge badge-type">Boarding house</span>
+                  <span class="badge badge-unverified">Not verified</span>
+                </div>
+                <h3 id="listing-c-title">[Demo] Cathedral Hill Shared Units</h3>
+                <p class="text-small text-muted">
+                  2–4 bed units · Study area · Guarded gate (sample text)
+                </p>
+                <p class="text-small text-muted commute-note">
+                  Sample distance to NIPA: not measured yet
+                </p>
+                <div class="listing-price">
+                  <span class="price"
+                    >K2,100 <small>/ bed / month (sample)</small></span
+                  >
+                  <span
+                    class="btn btn-secondary btn-disabled"
+                    aria-disabled="true"
+                    >Detail page — Milestone 2</span
+                  >
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="section surface-band"
+        id="how-it-works"
+        aria-labelledby="how-heading"
+      >
+        <div class="container">
+          <div class="section-heading center">
+            <span class="eyebrow">How it works</span>
+            <h2 id="how-heading">Three simple steps</h2>
+            <p class="text-muted">
+              Designed for students, interns, and short-term visitors comparing
+              stays in Lusaka.
+            </p>
+          </div>
+          <div class="grid grid-3 steps">
+            <div class="step-card">
+              <h3>Search by destination</h3>
+              <p class="text-muted">
+                Pick Evelyn Hone, NIPA, ZCAS, or another point. Filter by stay
+                type, dates, and guest count.
+              </p>
+            </div>
+            <div class="step-card">
+              <h3>Compare location &amp; commute</h3>
+              <p class="text-muted">
+                See property details and map-based distance. OpenStreetMap and
+                routing come in Milestone 2 and 5.
+              </p>
+            </div>
+            <div class="step-card">
+              <h3>Request a booking</h3>
+              <p class="text-muted">
+                Accounts and booking requests are planned for Milestone 4–5. No
+                payments in the first version.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="trust" aria-labelledby="trust-heading">
+        <div class="container">
+          <div class="section-heading">
+            <span class="eyebrow">Trust &amp; pricing</span>
+            <h2 id="trust-heading">Verification and clear prices</h2>
+            <p class="text-muted">
+              Administrators will approve listings before a property shows as
+              verified. This milestone shows layout only.
+            </p>
+          </div>
+          <div class="grid grid-2">
+            <div class="feature-card">
+              <div class="feature-icon" aria-hidden="true">✓</div>
+              <h3>Administrator verification</h3>
+              <p class="text-muted">
+                A verified badge will mean an admin completed your real checks.
+                Nothing on this homepage is verified today.
+              </p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon" aria-hidden="true">K</div>
+              <h3>Prices in Zambian kwacha</h3>
+              <p class="text-muted">
+                Rates display as K (ZMW). Sample amounts are placeholders —
+                confirm real pricing with the property owner later.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="section surface-band"
+        id="commute"
+        aria-labelledby="commute-heading"
+      >
+        <div class="container commute-layout commute-layout-wide">
+          <div>
+            <span class="eyebrow">Location &amp; commute</span>
+            <h2 id="commute-heading">Know the journey, not just the address</h2>
+            <p class="text-muted">
+              We will show straight-line distance separately from road-route
+              distance and estimated travel time when routing is connected. No
+              live traffic or minibus timetables unless a real data source is
+              added.
+            </p>
+          </div>
+          <div class="map-panel">
+            <div
+              id="map"
+              class="map-container"
+              data-api-base="../api/"
+              role="region"
+              aria-label="Interactive map of Lusaka, Zambia"
+            ></div>
+            <div class="map-footer">
+              <span id="map-listings-count">Loading listings…</span>
+              <span id="map-status" class="map-status" role="status" aria-live="polite"></span>
+              <a href="../pages/explore.html">Open the full map &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="cta-panel">
+            <h2>Property owners in Lusaka</h2>
+            <p>
+              List a boarding house or guesthouse. Owner registration opens in
+              Milestone 4 — this button is a placeholder link.
+            </p>
+            <a class="btn btn-secondary" href="../pages/register.html"
+              >Register (placeholder)</a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div>
+            <a class="brand" href="../index.html">
+              <span class="brand-mark" aria-hidden="true">CS</span>
+              CommuteStay
+            </a>
+            <p class="text-muted text-small">
+              Location-aware accommodation search for Lusaka — boarding houses
+              and guesthouses near colleges and workplaces.
+            </p>
+          </div>
+          <div>
+            <h3>Explore</h3>
+            <ul class="footer-links">
+              <li><a href="../pages/explore.html">Browse stays (stub)</a></li>
+              <li><a href="#featured">Demo listings</a></li>
+              <li><a href="#how-it-works">How it works</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Account</h3>
+            <ul class="footer-links">
+              <li><a href="../pages/login.html">Login (placeholder)</a></li>
+              <li><a href="../pages/register.html">Register (placeholder)</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Contact (placeholders)</h3>
+            <ul class="footer-links">
+              <li class="text-muted text-small">Lusaka, Zambia</li>
+              <li class="text-muted text-small">
+                Email: hello@commutestay.example
+              </li>
+              <li class="text-muted text-small">Phone: +260 XX XXX XXXX</li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <span
+            >© <span id="year"></span> CommuteStay — Milestone 1
+            demonstration.</span
+          >
+          <span>Hero photo: Lusaka city centre (local project asset).</span>
+        </div>
+      </div>
+    </footer>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="../assets/js/main.js"></script>
+    <script src="../assets/js/map.js"></script>
+  </body>
+</html>
